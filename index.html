@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Verdyn Technologies — Command Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --soil: #1C1410;
+    --green: #3D7A4F;
+    --green-light: #52A86A;
+    --green-bg: #E8F5EC;
+    --blue: #2B6CB0;
+    --blue-bg: #EBF4FF;
+    --amber: #B7791F;
+    --amber-bg: #FFFBEB;
+    --red: #C53030;
+    --red-bg: #FFF5F5;
+    --offwhite: #F5F2EE;
+    --clay: #8B7355;
+    --clay-light: #C4A882;
+    --border: #E2D9CE;
+    --card: #FFFFFF;
+    --muted: #6B5E4E;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--offwhite);
+    color: var(--soil);
+    min-height: 100vh;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--soil);
+    color: #fff;
+    padding: 0 20px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: #fff;
+    flex-shrink: 0;
+  }
+  .company-name { font-size: 14px; font-weight: 700; line-height: 1.1; }
+  .company-sub { font-size: 10px; color: var(--clay-light); font-family: 'DM Mono', monospace; letter-spacing: 1.5px; }
+
+  .patent-counter {
+    background: #7B3A1A;
+    border-radius: 8px;
+    padding: 5px 14px;
+    text-align: center;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  .patent-counter .days { font-size: 20px; font-weight: 800; font-family: 'DM Mono', monospace; color: #fff; line-height: 1; }
+  .patent-counter .label { font-size: 9px; color: rgba(255,255,255,0.7); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
+
+  /* NAV */
+  .nav {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    padding: 12px 18px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .nav-btn:hover { color: var(--green); }
+  .nav-btn.active { color: var(--green); font-weight: 700; border-bottom-color: var(--green); }
+
+  /* CONTENT */
+  .content {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    border-radius: 10px;
+    border-left: 4px solid var(--green);
+    box-shadow: 0 1px 4px rgba(28,20,16,0.07);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 13px 18px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-eyebrow {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--clay);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 3px;
+  }
+  .card-title { font-size: 15px; font-weight: 700; color: var(--soil); }
+  .card-body { padding: 14px 18px; }
+
+  /* ROW */
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 9px;
+  }
+  .row:last-child { margin-bottom: 0; }
+  .row-label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; flex-shrink: 0; }
+  .row-value { font-size: 13px; color: var(--soil); font-weight: 500; text-align: right; }
+  .row-value.red { color: var(--red); }
+  .row-value.amber { color: var(--amber); }
+  .row-value.green { color: var(--green); }
+  .row-value.mono { font-family: 'DM Mono', monospace; }
+
+  /* TAG */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-right: 5px;
+    margin-bottom: 3px;
+  }
+  .tag-green { color: var(--green); background: var(--green-bg); }
+  .tag-amber { color: var(--amber); background: var(--amber-bg); }
+  .tag-blue { color: var(--blue); background: var(--blue-bg); }
+  .tag-red { color: var(--red); background: var(--red-bg); }
+  .tag-clay { color: var(--clay); background: #F5F0EB; }
+
+  /* ALERT BOX */
+  .alert {
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 12px;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+  .alert-red { background: var(--red-bg); color: var(--red); }
+  .alert-amber { background: var(--amber-bg); color: var(--amber); }
+
+  /* DIVIDER ROW */
+  .divider-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .divider-row:last-child { border-bottom: none; }
+
+  /* CHECKLIST */
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-item:hover { background: #FAFAF8; margin: 0 -18px; padding: 9px 18px; }
+  .check-box {
+    width: 20px; height: 20px;
+    border-radius: 5px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    font-size: 12px;
+    color: #fff;
+    font-weight: 700;
+  }
+  .check-box.checked { background: var(--green); border-color: var(--green); }
+  .check-label { font-size: 13px; color: var(--soil); line-height: 1.5; }
+  .check-label.done { text-decoration: line-through; color: var(--clay); }
+
+  /* TASK ITEM */
+  .task-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .task-item:last-child { border-bottom: none; }
+  .task-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .task-num.done { background: var(--green); color: #fff; }
+  .task-text { font-size: 13px; color: var(--soil); line-height: 1.55; }
+  .task-text.done { text-decoration: line-through; color: var(--clay); }
+
+  /* AGENT CARD STATUS */
+  .agent-status {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; font-family: 'DM Mono', monospace;
+    border-radius: 4px; padding: 2px 8px; display: inline-block;
+    margin-bottom: 8px;
+  }
+  .status-active { color: var(--green); background: var(--green-bg); }
+  .status-urgent { color: var(--red); background: var(--red-bg); }
+  .status-standby { color: var(--blue); background: var(--blue-bg); }
+
+  /* SECTION LABEL */
+  .section-meta {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+
+  /* FOLDER MAP */
+  .folder-item { margin-bottom: 10px; }
+  .folder-name { font-size: 12px; font-weight: 700; color: var(--soil); font-family: 'DM Mono', monospace; margin-bottom: 2px; }
+  .folder-files { font-size: 11px; color: var(--muted); padding-left: 14px; line-height: 1.6; }
+
+  /* SESSION LOG */
+  .log-accomplished { display: flex; gap: 8px; padding: 5px 0; font-size: 13px; color: var(--soil); }
+  .log-check { color: var(--green); flex-shrink: 0; }
+  .log-sub { font-size: 11px; color: var(--clay); text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono', monospace; margin-bottom: 8px; margin-top: 12px; }
+
+  /* PATENT HERO */
+  .patent-hero {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 12px;
+  }
+  .patent-days-big {
+    font-size: 48px;
+    font-weight: 800;
+    font-family: 'DM Mono', monospace;
+    color: var(--red);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .patent-days-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 480px) {
+    .topbar { padding: 0 14px; }
+    .content { padding: 14px 12px 60px; }
+    .card-body { padding: 12px 14px; }
+    .card-header { padding: 11px 14px 9px; }
+    .patent-days-big { font-size: 36px; }
+  }
+
+  /* UPDATED BADGE */
+  .updated-badge {
+    font-size: 10px;
+    color: var(--clay);
+    font-family: 'DM Mono', monospace;
+    text-align: center;
+    padding: 20px 0 0;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo-mark">V</div>
+    <div>
+      <div class="company-name">Verdyn Technologies</div>
+      <div class="company-sub">COMMAND DASHBOARD</div>
+    </div>
+  </div>
+  <div class="patent-counter">
+    <div class="days" id="days-count">—</div>
+    <div class="label">days · patent</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showSection('overview', this)">Overview</button>
+  <button class="nav-btn" onclick="showSection('trial', this)">Field Trial</button>
+  <button class="nav-btn" onclick="showSection('ip', this)">IP &amp; Legal</button>
+  <button class="nav-btn" onclick="showSection('finance', this)">Finance</button>
+  <button class="nav-btn" onclick="showSection('board', this)">Agent Board</button>
+  <button class="nav-btn" onclick="showSection('tasks', this)">Task List</button>
+  <button class="nav-btn" onclick="showSection('log', this)">Session Log</button>
+</nav>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ═══════════════════ OVERVIEW ═══════════════════ -->
+  <div class="section active" id="section-overview">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-eyebrow">Company</div>
+        <div class="card-title">Verdyn Technologies LLC</div>
+      </div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">Entity</span><span class="row-value">Delaware LLC · #10391026</span></div>
+        <div class="row"><span class="row-label">Effective</span><span class="row-value">January 1, 2026</span></div>
+        <div class="row"><span class="row-label">Parent</span><span class="row-value">JBB Creative Ventures LLC</span></div>
+        <div class="row"><span class="row-label">Managing Principal</span><span class="row-value">Brandon Kyle Jones</span></div>
+        <div class="row"><span class="row-label">Stage</span><span class="row-value amber">Pre-revenue · Field validation</span></div>
+        <div class="row"><span class="row-label">Address</span><span class="row-value">6151 Naaman Forest Blvd, Garland TX</span></div>
+        <div class="row"><span class="row-label">Reg. Agent</span><span class="row-value">Harvard Business Services, Lewes DE</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: #2B6CB0;">
+      <div class="card-header">
+        <div class="card-eyebrow">Products</div>
+        <div class="card-title">Composition Status</div>
+      </div>
+      <div class="card-body">
+        <div style="margin-bottom:14px;">
+          <span class="tag tag-green">Comp A v1.1</span><span class="tag tag-amber">Needs Fresh Batch</span>
+          <div style="font-size:12px; color:var(--muted); margin-top:6px; line-height:1.6;">pH 2.4–3.0 · Organic acids + fulvic acid + calcium + surfactants. One pilot batch mixed Dec 2025. <strong>Fresh batch required</strong> before 2026 trial begins.</div>
+        </div>
+        <div style="border-top:1px solid var(--border); padding-top:12px;">
+          <span class="tag tag-blue">Comp B v1.0</span><span class="tag tag-clay">Not Yet Mixed</span>
+          <div style="font-size:12px; color:var(--muted); margin-top:6px; line-height:1.6;">pH 4.2–5.0 · Humic/fulvic + seaweed + amino acids + enzymes. Formula complete. No batch mixed. Secondary priority.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--red);">
+      <div class="card-header">
+        <div class="card-eyebrow">Critical Alert</div>
+        <div class="card-title">Patent Deadline</div>
+      </div>
+      <div class="card-body">
+        <div class="patent-hero">
+          <div>
+            <div class="patent-days-big" id="days-hero">—</div>
+            <div class="patent-days-label">days remaining</div>
+          </div>
+          <div>
+            <div style="font-size:13px; font-weight:600; color:var(--soil); margin-bottom:5px;">Non-Provisional Filing Due ~Nov 4, 2026</div>
+            <div style="font-size:12px; color:var(--muted); line-height:1.55;">No attorney engaged. Patent counsel must be retained <strong>by September 1, 2026</strong> at the latest.</div>
+          </div>
+        </div>
+        <div class="alert alert-red">⚠️ Missing this deadline forfeits Verdyn's priority date permanently.</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--clay);">
+      <div class="card-header">
+        <div class="card-eyebrow">Google Drive</div>
+        <div class="card-title">Folder Map</div>
+      </div>
+      <div class="card-body">
+        <div class="folder-item"><div class="folder-name">01 - Legal &amp; Corporate</div><div class="folder-files">LLC Operating Agreement · Certificate of Formation · Official Company Seal</div></div>
+        <div class="folder-item"><div class="folder-name">02 - Intellectual Property</div><div class="folder-files">Provisional Patent Application · Non-Provisional Specification · Patent Drawings</div></div>
+        <div class="folder-item"><div class="folder-name">03 - R&amp;D &amp; Formulations</div><div class="folder-files">Comp A v1.1 Blend Formula · Comp A v1.1 Pilot Batch Spec · Comp B v1.0 Blend Formula · Comp B v1.0 Pilot Batch Spec · R&amp;D Laboratory Manual</div></div>
+        <div class="folder-item"><div class="folder-name">04 - Field Trials</div><div class="folder-files">Field Validation Protocol · Composition A Field Testing Log</div></div>
+        <div class="folder-item"><div class="folder-name">05 - Operations</div><div class="folder-files">Company Dashboard (this file)</div></div>
+        <div class="folder-item"><div class="folder-name">06 - Finance</div><div class="folder-files" style="color:#B7791F;">Empty — CFO to populate</div></div>
+        <div class="folder-item"><div class="folder-name">07 - Partners &amp; Outreach</div><div class="folder-files" style="color:#B7791F;">Empty — R&amp;P Director to populate</div></div>
+        <div class="folder-item"><div class="folder-name">08 - Marketing &amp; Brand</div><div class="folder-files" style="color:#B7791F;">Empty — Comm. Strategist to populate</div></div>
+        <div class="folder-item"><div class="folder-name">09 - Agent Board</div><div class="folder-files">7 Agent Role Definition Documents</div></div>
+        <div class="folder-item"><div class="folder-name">Archive (Pre-Claude)</div><div class="folder-files">Original files preserved</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════ FIELD TRIAL ═══════════════════ -->
+  <div class="section" id="section-trial">
+
+    <div class="card" style="border-left-color: var(--red);">
+      <div class="card-header">
+        <div class="card-eyebrow">Primary Site</div>
+        <div class="card-title">TX-DFW-01 · Garland, TX</div>
+      </div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">Address</span><span class="row-value">6151 Naaman Forest Blvd</span></div>
+        <div class="row"><span class="row-label">Water Source</span><span class="row-value">City tap · Standard timer</span></div>
+        <div class="row"><span class="row-label">Trial Status</span><span class="row-value red">NOT STARTED (2026)</span></div>
+        <div class="row"><span class="row-label">Target Start</span><span class="row-value amber">Week of June 29, 2026</span></div>
+        <div class="row"><span class="row-label">Target End</span><span class="row-value">Week of September 21, 2026</span></div>
+        <div class="row"><span class="row-label">Additional Sites</span><span class="row-value red">0 of 3 minimum recruited</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--amber);">
+      <div class="card-header">
+        <div class="card-eyebrow">Pre-Trial Checklist</div>
+        <div class="card-title">Complete Before First Application</div>
+      </div>
+      <div class="card-body">
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-label">Plot boundaries defined and physically marked</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-label">Week-zero photos taken from fixed reference points (control + treatment)</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-label">MySoil test kit ordered (~$30 at mysoil.com)</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-label">Baseline soil samples collected and submitted</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-label">Baseline infiltration test run on both plots and logged</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-label">Raw materials inventoried for fresh Comp A v1.1 batch</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><div class="check-label">Fresh Comp A v1.1 batch mixed and logged in Field Testing Log</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--green);">
+      <div class="card-header">
+        <div class="card-eyebrow">Application Schedule</div>
+        <div class="card-title">12-Week Protocol</div>
+      </div>
+      <div class="card-body">
+        <div class="divider-row"><span style="font-size:12px; font-family:'DM Mono',monospace; color:var(--muted);">Weeks 1-2</span><span style="font-size:13px;">1 application per week</span></div>
+        <div class="divider-row"><span style="font-size:12px; font-family:'DM Mono',monospace; color:var(--muted);">Weeks 3-6</span><span style="font-size:13px;">Every 7-10 days</span></div>
+        <div class="divider-row"><span style="font-size:12px; font-family:'DM Mono',monospace; color:var(--muted);">Weeks 7-12</span><span style="font-size:13px;">1-2 additional applications as needed</span></div>
+        <div style="font-size:12px; color:var(--muted); margin-top:12px; line-height:1.6;">Total: 6-10 applications over full evaluation cycle. Standard dose: 8-12 fl oz concentrate per 1,000 sq ft. Apply in cross-hatch pattern at 18-24 in nozzle height.</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--clay);">
+      <div class="card-header">
+        <div class="card-eyebrow">Existing Data - December 2025</div>
+        <div class="card-title">Baseline Infiltration (Control Only)</div>
+      </div>
+      <div class="card-body">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:12px; line-height:1.6;">3 control readings from Dec 8, 2025. No treated data. No soil chemistry. Winter data has limited scientific value -- 2026 summer trial starts fresh with full protocol.</div>
+        <div class="row"><span class="row-label">Plot 1</span><span class="row-value mono">54 sec / 480 mL</span></div>
+        <div class="row"><span class="row-label">Plot 2</span><span class="row-value mono">92 sec / 480 mL</span></div>
+        <div class="row"><span class="row-label">Plot 3</span><span class="row-value mono">117 sec / 480 mL</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════ IP & LEGAL ═══════════════════ -->
+  <div class="section" id="section-ip">
+
+    <div class="card" style="border-left-color: var(--red);">
+      <div class="card-header">
+        <div class="card-eyebrow">Patent - URGENT</div>
+        <div class="card-title">Non-Provisional Filing Deadline</div>
+      </div>
+      <div class="card-body">
+        <div class="patent-hero">
+          <div>
+            <div class="patent-days-big" id="days-ip">—</div>
+            <div class="patent-days-label">days remaining</div>
+          </div>
+          <div>
+            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">~November 4, 2026</div>
+            <div style="font-size:12px; color:var(--muted); line-height:1.55;">Provisional filed Nov 4, 2025. Non-provisional must be filed within 12 months to preserve priority date.</div>
+          </div>
+        </div>
+        <div class="row"><span class="row-label">Attorney Engaged</span><span class="row-value red">NO - ACTION REQUIRED</span></div>
+        <div class="row"><span class="row-label">Attorney Deadline</span><span class="row-value amber">Retain by September 1, 2026</span></div>
+        <div class="row"><span class="row-label">Estimated Cost</span><span class="row-value">$5,000-$15,000</span></div>
+        <div class="alert alert-red">Missing this deadline forfeits Verdyn's priority date permanently. Budget must be reserved now.</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--blue);">
+      <div class="card-header">
+        <div class="card-eyebrow">IP Portfolio</div>
+        <div class="card-title">Current Status</div>
+      </div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">Provisional Application</span><span class="row-value green">Filed - 02-IP folder</span></div>
+        <div class="row"><span class="row-label">NP Specification</span><span class="row-value amber">Draft exists - Needs attorney review</span></div>
+        <div class="row"><span class="row-label">Patent Drawings</span><span class="row-value green">Filed - 02-IP folder</span></div>
+        <div class="row"><span class="row-label">IP Assignment</span><span class="row-value amber">Covered by Op. Agreement - confirm adequacy</span></div>
+        <div class="row"><span class="row-label">Trade Secret / NDA</span><span class="row-value amber">No NDAs in place yet</span></div>
+        <div class="row"><span class="row-label">Trademark</span><span class="row-value" style="color:var(--clay);">Not yet filed</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--green);">
+      <div class="card-header">
+        <div class="card-eyebrow">Entity Compliance</div>
+        <div class="card-title">Delaware LLC Obligations</div>
+      </div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">Annual Franchise Tax</span><span class="row-value">Due June 1, 2027 - $300 minimum</span></div>
+        <div class="row"><span class="row-label">Registered Agent Fee</span><span class="row-value">Due November 2026 - $50</span></div>
+        <div class="row"><span class="row-label">Registered Agent</span><span class="row-value">Harvard Business Services</span></div>
+        <div class="row"><span class="row-label">TX Qualification</span><span class="row-value amber">Not yet assessed</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--clay);">
+      <div class="card-header">
+        <div class="card-eyebrow">Regulatory</div>
+        <div class="card-title">Commercialization Pathway</div>
+      </div>
+      <div class="card-body">
+        <div style="font-size:13px; color:var(--muted); line-height:1.7;">EPA jurisdiction over soil amendment claims must be assessed before any retail language is finalized. Texas Department of Agriculture registration required for commercial sale. Labeling compliance review needed. Research not yet initiated - Patent and Legal Counsel action item for Q4 2026.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════ FINANCE ═══════════════════ -->
+  <div class="section" id="section-finance">
+
+    <div class="card" style="border-left-color: var(--amber);">
+      <div class="card-header">
+        <div class="card-eyebrow">Financial Position</div>
+        <div class="card-title">Current Status - June 2026</div>
+      </div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">Revenue</span><span class="row-value">$0</span></div>
+        <div class="row"><span class="row-label">Outside Capital</span><span class="row-value">$0</span></div>
+        <div class="row"><span class="row-label">Expense Log</span><span class="row-value red">Not yet established</span></div>
+        <div class="row"><span class="row-label">Budget Available</span><span class="row-value amber">To be confirmed by Brandon</span></div>
+        <div class="row"><span class="row-label">Patent Reserve</span><span class="row-value red">Not yet established</span></div>
+        <div class="alert alert-amber">CFO priority: establish complete expense log and confirm available budget in next session.</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--red);">
+      <div class="card-header">
+        <div class="card-eyebrow">Upcoming Costs</div>
+        <div class="card-title">Near-Term Expenses</div>
+      </div>
+      <div class="card-body">
+        <div class="divider-row"><span style="font-size:13px;">MySoil baseline soil test</span><span style="font-size:12px; font-family:'DM Mono',monospace; color:var(--amber); font-weight:600;">~$30</span></div>
+        <div class="divider-row"><span style="font-size:13px;">Comp A v1.1 raw materials (fresh batch)</span><span style="font-size:12px; font-family:'DM Mono',monospace; color:var(--amber); font-weight:600;">~$50-$100</span></div>
+        <div class="divider-row"><span style="font-size:13px;">Ring infiltrometer (if not owned)</span><span style="font-size:12px; font-family:'DM Mono',monospace; color:var(--amber); font-weight:600;">~$30-$80</span></div>
+        <div class="divider-row"><span style="font-size:13px;">Mid-trial soil test (MySoil)</span><span style="font-size:12px; font-family:'DM Mono',monospace; color:var(--amber); font-weight:600;">~$30</span></div>
+        <div class="divider-row"><span style="font-size:13px;">Final soil test (Logan Labs / Waypoint)</span><span style="font-size:12px; font-family:'DM Mono',monospace; color:var(--amber); font-weight:600;">~$50-$150</span></div>
+        <div class="divider-row"><span style="font-size:13px; font-weight:600; color:var(--red);">Non-provisional patent filing</span><span style="font-size:12px; font-family:'DM Mono',monospace; color:var(--red); font-weight:700;">~$5,000-$15,000</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--green);">
+      <div class="card-header">
+        <div class="card-eyebrow">Non-Dilutive Funding</div>
+        <div class="card-title">Grant Opportunities</div>
+      </div>
+      <div class="card-body">
+        <div style="font-size:13px; color:var(--muted); line-height:1.7;">No grants identified yet. CFO and Research and Partnerships Director scanning USDA SBIR, USDA NIFA, EPA environmental technology programs, and Texas agricultural innovation funding. Active priority for Q3 2026.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════ AGENT BOARD ═══════════════════ -->
+  <div class="section" id="section-board">
+
+    <div class="section-meta">7 Agents - Established June 28, 2026 - Docs in 09 - Agent Board</div>
+
+    <div class="card" style="border-left-color: var(--green);">
+      <div class="card-header"><div class="card-eyebrow">Agent 01</div><div class="card-title">Chief of Staff</div></div>
+      <div class="card-body"><span class="agent-status status-active">Active</span><div style="font-size:13px; color:var(--muted); line-height:1.6;">Coordinates all agents. Maintains company status. Runs every session. Produces the physical task list. Dashboard established. Agent Board complete. Awaiting ChatGPT history export.</div></div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--green);">
+      <div class="card-header"><div class="card-eyebrow">Agent 02</div><div class="card-title">The Scientist</div></div>
+      <div class="card-body"><span class="agent-status status-active">Active</span><div style="font-size:13px; color:var(--muted); line-height:1.6;">Owns formulation integrity, field trial oversight, and claim validation. Awaiting baseline soil test and first 2026 infiltration data.</div></div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--red);">
+      <div class="card-header"><div class="card-eyebrow">Agent 03</div><div class="card-title">Patent and Legal Counsel</div></div>
+      <div class="card-body"><span class="agent-status status-urgent">Urgent</span><div style="font-size:13px; color:var(--muted); line-height:1.6;">Monitors Nov 4, 2026 deadline. Patent attorney engagement is the #1 legal priority. Must act before September 2026.</div></div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--amber);">
+      <div class="card-header"><div class="card-eyebrow">Agent 04</div><div class="card-title">The CFO</div></div>
+      <div class="card-body"><span class="agent-status status-active">Active</span><div style="font-size:13px; color:var(--muted); line-height:1.6;">Tracks spending, models unit economics, identifies grant opportunities. Expense log not yet established. Budget confirmation needed from Brandon.</div></div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--blue);">
+      <div class="card-header"><div class="card-eyebrow">Agent 05</div><div class="card-title">Commercialization Strategist</div></div>
+      <div class="card-body"><span class="agent-status status-standby">Standby</span><div style="font-size:13px; color:var(--muted); line-height:1.6;">No commercial activity until field data exists. Preparing competitive landscape analysis and initial market positioning statement.</div></div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--blue);">
+      <div class="card-header"><div class="card-eyebrow">Agent 06</div><div class="card-title">Research and Partnerships Director</div></div>
+      <div class="card-body"><span class="agent-status status-standby">Standby</span><div style="font-size:13px; color:var(--muted); line-height:1.6;">Texas A&amp;M AgriLife strategy in development. No outreach until trial data exists and IP disclosure reviewed.</div></div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--green);">
+      <div class="card-header"><div class="card-eyebrow">Agent 07</div><div class="card-title">Field Operations Manager</div></div>
+      <div class="card-body"><span class="agent-status status-active">Active</span><div style="font-size:13px; color:var(--muted); line-height:1.6;">Owns 90-day trial execution at TX-DFW-01. Plot setup, baseline testing, and first application are immediate priorities this week.</div></div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════ TASK LIST ═══════════════════ -->
+  <div class="section" id="section-tasks">
+
+    <div class="card" style="border-left-color: var(--green);">
+      <div class="card-header">
+        <div class="card-eyebrow">Brandon's Physical Task List</div>
+        <div class="card-title">Week of June 29, 2026</div>
+      </div>
+      <div class="card-body">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">These are actions only you can take. Tap to mark complete.</div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-num">1</div>
+          <div class="task-text"><strong>ORDER</strong> a MySoil test kit at mysoil.com (~$30). Do not apply anything until baseline samples are collected and submitted.</div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-num">2</div>
+          <div class="task-text"><strong>INVENTORY</strong> your Comp A raw materials - citric acid, malic acid, sodium gluconate, calcium citrate, fulvic acid, yucca extract, decyl glucoside. Report what is missing.</div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-num">3</div>
+          <div class="task-text"><strong>MARK</strong> control and treatment plot boundaries at TX-DFW-01. Take week-zero photos from fixed reference points. Label photos with date and plot type.</div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-num">4</div>
+          <div class="task-text"><strong>UPLOAD</strong> your ChatGPT history export when it arrives so the board can integrate that context.</div>
+        </div>
+        <div class="task-item" onclick="toggleTask(this)">
+          <div class="task-num">5</div>
+          <div class="task-text"><strong>IDENTIFY</strong> 2 neighbors, contacts, or properties that could serve as additional test sites. No commitment needed yet - just identify candidates.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left-color: var(--amber);">
+      <div class="card-header">
+        <div class="card-eyebrow">Open Decisions</div>
+        <div class="card-title">Awaiting Brandon's Input</div>
+      </div>
+      <div class="card-body">
+        <div class="divider-row" style="flex-direction:column; gap:6px;">
+          <div style="font-size:13px; font-weight:600; color:var(--soil);">Which patent attorney to engage for non-provisional filing</div>
+          <div><span class="tag tag-blue">Patent and Legal Counsel</span><span class="tag tag-amber">Decision by August 2026</span></div>
+        </div>
+        <div class="divider-row" style="flex-direction:column; gap:6px;">
+          <div style="font-size:13px; font-weight:600; color:var(--soil);">Confirm budget available for trial execution and patent filing</div>
+          <div><span class="tag tag-blue">CFO</span><span class="tag tag-amber">Next session</span></div>
+        </div>
+        <div class="divider-row" style="flex-direction:column; gap:6px;">
+          <div style="font-size:13px; font-weight:600; color:var(--soil);">Confirm turf type and exact plot dimensions at TX-DFW-01</div>
+          <div><span class="tag tag-blue">Field Operations Manager</span><span class="tag tag-amber">This week</span></div>
+        </div>
+        <div class="divider-row" style="flex-direction:column; gap:6px; border:none;">
+          <div style="font-size:13px; font-weight:600; color:var(--soil);">Upload ChatGPT history export for board integration</div>
+          <div><span class="tag tag-blue">Chief of Staff</span><span class="tag tag-amber">When export arrives</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════ SESSION LOG ═══════════════════ -->
+  <div class="section" id="section-log">
+
+    <div class="card" style="border-left-color: var(--green);">
+      <div class="card-header">
+        <div class="card-eyebrow">Session 001</div>
+        <div class="card-title">June 28, 2026 - Founding Session</div>
+      </div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">Participants</span><span class="row-value">Brandon Jones - Chief of Staff</span></div>
+        <div class="log-sub">Accomplished</div>
+        <div class="log-accomplished"><span class="log-check">✓</span><span>Full Drive review completed - all existing documents catalogued</span></div>
+        <div class="log-accomplished"><span class="log-check">✓</span><span>8 numbered subfolders created with naming convention and files organized</span></div>
+        <div class="log-accomplished"><span class="log-check">✓</span><span>Archive (Pre-Claude) folder created by Brandon</span></div>
+        <div class="log-accomplished"><span class="log-check">✓</span><span>Agent Board defined - 7 roles fully documented in 09 - Agent Board</span></div>
+        <div class="log-accomplished"><span class="log-check">✓</span><span>Company Dashboard created and deployed in Drive</span></div>
+        <div class="log-accomplished"><span class="log-check">✓</span><span>Key Verdyn facts stored in Claude memory for session continuity</span></div>
+        <div class="log-accomplished"><span class="log-check">✓</span><span>90-day field validation plan and full dashboard built as interactive artifacts</span></div>
+        <div class="log-sub">Next Session Focus</div>
+        <div style="font-size:13px; color:var(--muted); line-height:1.6;">ChatGPT history integration when export is ready. CFO expense log initialization. Confirm budget and materials status. Begin executing Brandon's physical task list.</div>
+      </div>
+    </div>
+
+    <div class="updated-badge">Last updated by Chief of Staff - June 28, 2026</div>
+
+  </div>
+
+</div>
+
+<script>
+  function updateCountdown() {
+    const deadline = new Date('2026-11-04');
+    const now = new Date();
+    const days = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+    document.getElementById('days-count').textContent = days;
+    document.getElementById('days-hero').textContent = days;
+    const ipEl = document.getElementById('days-ip');
+    if (ipEl) ipEl.textContent = days;
+  }
+  updateCountdown();
+
+  function showSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('section-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function toggleCheck(item) {
+    const box = item.querySelector('.check-box');
+    const label = item.querySelector('.check-label');
+    const checked = box.classList.toggle('checked');
+    label.classList.toggle('done', checked);
+  }
+
+  function toggleTask(item) {
+    const num = item.querySelector('.task-num');
+    const text = item.querySelector('.task-text');
+    const done = num.classList.toggle('done');
+    text.classList.toggle('done', done);
+    num.textContent = done ? '✓' : num.textContent;
+  }
+</script>
+
+</body>
+</html>
